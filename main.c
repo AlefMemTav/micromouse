@@ -1,10 +1,10 @@
 #include <stdio.h>
 
-#define MAX_ROW 2
-#define MAX_COL 2
+#define MAX_ROW 22
+#define MAX_COL 22
 #define MAX (MAX_ROW*MAX_COL)
 
-#define D_TESTE 1
+#define D_TESTE 10
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 
@@ -129,48 +129,47 @@ int verificar_resposta(int m, char c)
     {
     case 0:
         if (c == 'w')
-            fprintf(stderr, "bateu");
+            fprintf(stderr, "bateu\n");
         break;
     case 1:
         if (c == 'w')
-            fprintf(stderr, "andou uma casa");
+            fprintf(stderr, "andou uma casa\n");
         else if (c == 'j' || c == 'R' || c == 's')
-            fprintf(stderr, "andou uma casa e bateu");
+            fprintf(stderr, "andou uma casa e bateu\n");
         break;
     case 2:
         if (c == 'w')
-            fprintf(stderr, "encontrou o objetivo");
+            fprintf(stderr, "encontrou o objetivo\n");
         else if (c == 'j')
-            fprintf(stderr, "andou duas casas");
+            fprintf(stderr, "andou duas casas\n");
         else if (c == 'R')
-            fprintf(stderr, "andou uma casa e bateu");
+            fprintf(stderr, "andou uma casa e bateu\n");
         else if (c == 's')
-            fprintf(stderr, "andou duas casas e bateu");
+            fprintf(stderr, "andou duas casas e bateu\n");
         break;
     case 3:
         if (c == 'R')
-            fprintf(stderr, "andou tres casas");
+            fprintf(stderr, "andou tres casas\n");
         else if (c == 's')
-            fprintf(stderr, "andou tres casas e bateu");
+            fprintf(stderr, "andou tres casas e bateu\n");
         break;
     case 4:
         if (c == 's')
-            fprintf(stderr, "andou quatro casas");
+            fprintf(stderr, "andou quatro casas\n");
         break;
     case 5:
         if(c == 'r')
-            fprintf(stderr, "direita");
+            fprintf(stderr, "direita\n");
         else if(c == 'l')
-            fprintf(stderr, "esquerda");
+            fprintf(stderr, "esquerda\n");
         else if(c == 'R')
-            fprintf(stderr, "direita direita");
+            fprintf(stderr, "direita direita\n");
         break;
     case -1:
         if(c == 'd')
-            fprintf(stderr, "sensor quebrado");
+            fprintf(stderr, "sensor quebrado\n");
         break;
     }
-    fprintf(stderr, "%d\n", 7);
     return m;
 }
 
@@ -355,6 +354,7 @@ void atualizar_distancia(Casa path[MAX_ROW * MAX_COL], int maze[MAX_ROW][MAX_COL
     }
 }
 
+
 void flood_fill(Casa path[MAX_ROW * MAX_COL], int maze[MAX_ROW][MAX_COL], int visited[MAX_ROW][MAX_COL], int x, int y, int d)
 {
     Casa q[MAX_ROW * MAX_COL]; // Fila de vizinhos da posicao atual
@@ -382,7 +382,7 @@ void flood_fill(Casa path[MAX_ROW * MAX_COL], int maze[MAX_ROW][MAX_COL], int vi
         printf("\t front:%d rear:%d \n", front, rear);
         /* -------------------------------------------------------- */
 
-        /* Se o rato se moveu, pega a casa na frente da fila */
+        /* Se o rato se moveu, pega a casa vizinha na frente da fila */
         if(m == 1)
         {
             c = q[front];
@@ -433,6 +433,8 @@ void flood_fill(Casa path[MAX_ROW * MAX_COL], int maze[MAX_ROW][MAX_COL], int vi
 
             visited[x][y] = 1; // Marca a casa como visitada
             front = (front + 1) % MAX; // Remove da frente da fila
+
+            //printf("front: %d\n", front);
             path[path_size] = c; // Armazena a casa no caminho
 
             /* Atualiza as distancias das casas do caminho */
@@ -444,14 +446,6 @@ void flood_fill(Casa path[MAX_ROW * MAX_COL], int maze[MAX_ROW][MAX_COL], int vi
             Casa v_oeste = {c.x-1, c.y, maze[x-1][y]};
             Casa v_norte = {c.x, c.y+1, maze[x][y+1]};
             Casa v_sul = {c.x, c.y-1, maze[x][y-1]};
-
-            /* ------------------------ teste ------------------------
-            // Neste teste eu imprimo todos os vizinhos atuais de uma casa
-            printf("L(%dx%d):%d\n", x+1, y, v_leste.d);
-            printf("O(%dx%d):%d\n", x-1, y, v_oeste.d);
-            printf("N(%dx%d):%d\n", x, y+1, v_norte.d);
-            printf("S(%dx%d):%d\n", x, y-1, v_sul.d);
-             -------------------------------------------------------- */
 
             int i = 0, j = 0;
             Casa v_em_x[2]; // Leste e Oeste
@@ -479,25 +473,44 @@ void flood_fill(Casa path[MAX_ROW * MAX_COL], int maze[MAX_ROW][MAX_COL], int vi
             Casa v[tam_v];
             juntar_vizinhos(v_em_x, v_em_y, i, j, v);
 
+            int primeiro_vizinho = rear;
+
             /* Armazena os vizinhos da casa na fila */
             for (int k = 0; k < tam_v; k++)
             {
 
-                /* ------------------------ teste ------------------------
+                /* ------------------------ teste ------------------------ */
                 // Neste teste eu imprimo todos os vizinhos que entraram na fila
                 printf("\t (rear = %d): (%dx%d):%d \n", rear, v[k].x, v[k].y, v[k].d);
-                 -------------------------------------------------------- */
+                /* -------------------------------------------------------- */
                 q[rear] = v[k];
 
                 rear = (rear + 1) % MAX;
             }
 
+            for(int i = primeiro_vizinho; i < rear; i++)
+            {
+                int x = q[front].x;
+                int y = q[front].y;
+                int x_v = q[i].x;
+                int y_v = q[i].y;
+
+                if(x != x_v && y != y_v)
+                {
+                    front = (front + 1) % MAX;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
             /* ------------------------ teste ------------------------ */
             // Neste teste eu imprimo a fila
-            for (int i = front; i < rear; i++)
-            {
-                printf("\t (front = %d): (%dx%d):%d v = %d \n", i, q[i].x, q[i].y, q[i].d, visited[q[i].x][q[i].y]);
-            }
+            //for (int i = front; i < rear; i++)
+            //{
+                //printf("\t q(front = %d): (%dx%d):%d v = %d \n", i, q[i].x, q[i].y, q[i].d, visited[q[i].x][q[i].y]);
+            //}
             /* -------------------------------------------------------- */
 
             bussula = olhar_bussula(q[front], x_antigo, y_antigo); // Pega a direcao atual do rato
@@ -512,144 +525,56 @@ void flood_fill(Casa path[MAX_ROW * MAX_COL], int maze[MAX_ROW][MAX_COL], int vi
             /* -------------------------------------------------------- */
 
             m = verificar_resposta(andar(), 'w'); // Move o rato
-
-            /* ------------------------ teste ------------------------*/
-            printf("m = %d\n", m);
-            /* -------------------------------------------------------- */
         }
     }
 }
 
-void inunda_maze_inicio(int maze[MAX_ROW][MAX_COL], int x, int y, int d, int parada)
+void inunda_maze_direita_baixo(int maze[MAX_ROW][MAX_COL], int x, int y, int d)
 {
-    /* Se fora dos limites do labirinto ou ja foi visitado */
+    /* Se fora dos limites do labirinto ou se ja foi visitado */
     if (!is_maze(x, y) || maze[x][y] != -1 || d < 0)
         return;
 
     maze[x][y] = d;
 
-    Casa c = {x, y, d};
-
-    Casa v_direita = get_vizinho(c, x, y+1);
-
-    if(v_direita.d != 0 && (parada-1)%2 != 0 || y < (parada-1)/2)
-    {
-        inunda_maze_inicio(maze, x, y+1, d - 1, parada);
-    }
-    else
-    {
-        return;
-    }
-
-    Casa v_frente = get_vizinho(c, x+1, y);
-
-    if(v_frente.d != 0 && (parada-1)%2 != 0 || x < (parada-1)/2)
-    {
-        inunda_maze_inicio(maze, x+1, y, d - 1, parada);
-    }
-    else
-    {
-        return;
-    }
+    inunda_maze_direita_baixo(maze, x, y+1, d - 1); // Direta
+    inunda_maze_direita_baixo(maze, x+1, y, d - 1); // Baixo
 }
 
-void inunda_maze_diagonal_inicio(int maze[MAX_ROW][MAX_COL], int x, int y, int d, int parada)
+void inunda_maze_direita_cima(int maze[MAX_ROW][MAX_COL], int x, int y, int d)
 {
-    /* Se fora dos limites do labirinto ou ja foi visitado */
-    if (!is_maze(x, y) || maze[x][y] != -1 || d < 0)
+    /* Se fora dos limites do labirinto ou se ja foi visitado */
+    if (!is_maze(x, y) || d < 0)
         return;
 
     maze[x][y] = d;
 
-    Casa c = {x, y, d};
-
-    Casa v_direita = get_vizinho(c, x, y+1);
-
-    if(v_direita.d != 0 && (parada-1)%2 != 0 || y < (parada-1)/2)
-    {
-        inunda_maze_diagonal_inicio(maze, x, y+1, d - 1, parada);
-    }
-    else
-    {
-        return;
-    }
-
-    Casa v_tras = get_vizinho(c, x-1, y);
-
-    if(v_tras.d != 0 && (parada-1)%2 != 0 || x > (parada-1)/2)
-    {
-        inunda_maze_diagonal_inicio(maze, x-1, y, d - 1, parada);
-    }
-    else
-    {
-        return;
-    }
+    inunda_maze_direita_cima(maze, x, y+1, d - 1); // Direta
+    inunda_maze_direita_cima(maze, x-1, y, d - 1); // Cima
 }
 
-void inunda_maze_diagonal_fim(int maze[MAX_ROW][MAX_COL], int x, int y, int d, int parada)
+void inunda_maze_esquerda_baixo(int maze[MAX_ROW][MAX_COL], int x, int y, int d)
 {
-    /* Se fora dos limites do labirinto ou ja foi visitado */
-    if (!is_maze(x, y) || maze[x][y] != -1 || d < 0)
+    /* Se fora dos limites do labirinto ou se ja foi visitado */
+    if (!is_maze(x, y) || d < 0)
         return;
 
     maze[x][y] = d;
 
-    Casa c = {x, y, d};
-
-    Casa v_esquerda = get_vizinho(c, x, y-1);
-
-    if(v_esquerda.d != 0 && (parada-1)%2 != 0 || y > (parada-1)/2)
-    {
-        inunda_maze_diagonal_fim(maze, x, y-1, d - 1, parada);
-    }
-    else
-    {
-        return;
-    }
-
-    Casa v_frente = get_vizinho(c, x+1, y);
-
-    if(v_frente.d != 0 && (parada-1)%2 != 0 || x < (parada-1)/2)
-    {
-        inunda_maze_diagonal_fim(maze, x+1, y, d - 1, parada);
-    }
-    else
-    {
-        return;
-    }
+    inunda_maze_esquerda_baixo(maze, x, y-1, d - 1); // Esquerda
+    inunda_maze_esquerda_baixo(maze, x+1, y, d - 1); // Baixo
 }
 
-void inunda_maze_fim(int maze[MAX_ROW][MAX_COL], int x, int y, int d, int parada)
+void inunda_maze_esquerda_cima(int maze[MAX_ROW][MAX_COL], int x, int y, int d)
 {
-    /* Se fora dos limites do labirinto ou ja foi visitado */
-    if (!is_maze(x, y) || maze[x][y] != -1 || d < 0)
+    /* Se fora dos limites do labirinto ou se ja foi visitado */
+    if (!is_maze(x, y) || d < 0)
         return;
 
     maze[x][y] = d;
 
-    Casa c = {x, y, d};
-
-    Casa v_esquerda = get_vizinho(c, x, y-1);
-
-    if(v_esquerda.d != 0 && (parada-1)%2 != 0 || y > (parada-1)/2)
-    {
-        inunda_maze_fim(maze, x, y-1, d - 1, parada);
-    }
-    else
-    {
-        return;
-    }
-
-    Casa v_tras = get_vizinho(c, x-1, y);
-
-    if(v_tras.d != 0 && (parada-1)%2 != 0 || x > (parada-1)/2)
-    {
-        inunda_maze_fim(maze, x-1, y, d - 1, parada);
-    }
-    else
-    {
-        return;
-    }
+    inunda_maze_esquerda_cima(maze, x, y-1, d - 1); // Esquerda
+    inunda_maze_esquerda_cima(maze, x-1, y, d - 1); // Cima
 }
 
 void print_maze(int maze[MAX_ROW][MAX_COL])
@@ -721,18 +646,21 @@ int main()
     int d = D_TESTE;
 
     /* Inicializa o labirinto com distancias ate o objetivo */
-    inunda_maze_inicio(maze, 0, 0, d, d+1);
-    inunda_maze_fim(maze, d, d, d, d+1);
-    inunda_maze_diagonal_inicio(maze, d, 0, d, d+1);
-    inunda_maze_diagonal_fim(maze, 0, d, d, d+1);
+    inunda_maze_direita_baixo(maze, MAX_ROW/2, MAX_COL/2, d);
+    inunda_maze_direita_cima(maze, MAX_ROW/2, MAX_COL/2, d);
+
+    inunda_maze_esquerda_baixo(maze, MAX_ROW/2, MAX_COL/2, d);
+    inunda_maze_esquerda_cima(maze, MAX_ROW/2, MAX_COL/2, d);
+
+    //inunda_maze(maze, MAX_ROW/2, MAX_COL/2, d);
 
     /* Flood fill da origem ate o objetivo */
-    flood_fill(path, maze, visited, 0, 0, d);
+    flood_fill(path, maze, visited, MAX_ROW/2, MAX_COL/2, d);
 
     /* ------------------------ teste ------------------------ */
     print_maze(maze);
-    print_map(visited);
-    print_path(path);
+    //print_map(visited);
+    //print_path(path);
     /* -------------------------------------------------------- */
 
     return 0;
