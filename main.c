@@ -1,10 +1,10 @@
 #include <stdio.h>
 
-#define MAX_ROW 22
-#define MAX_COL 22
+#define MAX_ROW 10
+#define MAX_COL 10
 #define MAX (MAX_ROW*MAX_COL)
 
-#define D_TESTE 10
+#define D_TESTE 1
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 
@@ -432,9 +432,7 @@ void flood_fill(Casa path[MAX_ROW * MAX_COL], int maze[MAX_ROW][MAX_COL], int vi
             y_antigo = y;
 
             visited[x][y] = 1; // Marca a casa como visitada
-            front = (front + 1) % MAX; // Remove da frente da fila
 
-            //printf("front: %d\n", front);
             path[path_size] = c; // Armazena a casa no caminho
 
             /* Atualiza as distancias das casas do caminho */
@@ -473,12 +471,11 @@ void flood_fill(Casa path[MAX_ROW * MAX_COL], int maze[MAX_ROW][MAX_COL], int vi
             Casa v[tam_v];
             juntar_vizinhos(v_em_x, v_em_y, i, j, v);
 
-            int primeiro_vizinho = rear;
+            front = rear;
 
             /* Armazena os vizinhos da casa na fila */
             for (int k = 0; k < tam_v; k++)
             {
-
                 /* ------------------------ teste ------------------------ */
                 // Neste teste eu imprimo todos os vizinhos que entraram na fila
                 printf("\t (rear = %d): (%dx%d):%d \n", rear, v[k].x, v[k].y, v[k].d);
@@ -488,29 +485,12 @@ void flood_fill(Casa path[MAX_ROW * MAX_COL], int maze[MAX_ROW][MAX_COL], int vi
                 rear = (rear + 1) % MAX;
             }
 
-            for(int i = primeiro_vizinho; i < rear; i++)
-            {
-                int x = q[front].x;
-                int y = q[front].y;
-                int x_v = q[i].x;
-                int y_v = q[i].y;
-
-                if(x != x_v && y != y_v)
-                {
-                    front = (front + 1) % MAX;
-                }
-                else
-                {
-                    break;
-                }
-            }
-
             /* ------------------------ teste ------------------------ */
             // Neste teste eu imprimo a fila
             //for (int i = front; i < rear; i++)
-            //{
-                //printf("\t q(front = %d): (%dx%d):%d v = %d \n", i, q[i].x, q[i].y, q[i].d, visited[q[i].x][q[i].y]);
-            //}
+            {
+                printf("\t q(front = %d): (%dx%d):%d v = %d \n", i, q[i].x, q[i].y, q[i].d, visited[q[i].x][q[i].y]);
+            }
             /* -------------------------------------------------------- */
 
             bussula = olhar_bussula(q[front], x_antigo, y_antigo); // Pega a direcao atual do rato
@@ -652,10 +632,8 @@ int main()
     inunda_maze_esquerda_baixo(maze, MAX_ROW/2, MAX_COL/2, d);
     inunda_maze_esquerda_cima(maze, MAX_ROW/2, MAX_COL/2, d);
 
-    //inunda_maze(maze, MAX_ROW/2, MAX_COL/2, d);
-
     /* Flood fill da origem ate o objetivo */
-    flood_fill(path, maze, visited, MAX_ROW/2, MAX_COL/2, d);
+    //flood_fill(path, maze, visited, MAX_ROW/2, MAX_COL/2, d);
 
     /* ------------------------ teste ------------------------ */
     print_maze(maze);
