@@ -1,10 +1,10 @@
 #include <stdio.h>
 
-#define MAX_ROW 10
-#define MAX_COL 10
+#define MAX_ROW 23
+#define MAX_COL 23
 #define MAX (MAX_ROW*MAX_COL)
 
-#define D_TESTE 1
+#define D_TESTE 10
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 
@@ -20,13 +20,6 @@ typedef struct
     int y; // indice y da coordenada
     int d; // distancia da coordenada ate o objetivo
 } Casa;
-
-Casa get_vizinho(Casa c, int x, int y)
-{
-    c.x = x;
-    c.y = y;
-    return c;
-}
 
 int is_maze(int i, int j)
 {
@@ -175,20 +168,13 @@ int verificar_resposta(int m, char c)
 
 void sort_vizinhos(Casa* v, int tamanho)
 {
-    /* Pela distancia */
     for (int i = 0; i < tamanho - 1; i++)
-    {
         for (int j = 0; j < tamanho - i - 1; j++)
-        {
             if (v[j].d > v[j + 1].d)
-            {
                 SWAP(v[j], v[j + 1]);
-            }
-        }
-    }
 }
 
-void juntar_vizinhos(Casa arr1[], Casa arr2[], int size1, int size2, Casa arr3[])
+void juntar_vizinhos(Casa* arr1, Casa* arr2, int size1, int size2, Casa* arr3)
 {
     int i = 0, j = 0, k = 0;
 
@@ -322,8 +308,8 @@ int olhar_bussula(Casa c, int x_antigo, int y_antigo)
         /* O rato tentou ir para o Sul */
         else
             bussula = 3;
-        /* Se o rato esta se movendo no eixo y */
     }
+    /* Se o rato esta se movendo no eixo y */
     else if(c.x != x_antigo && c.y == y_antigo) // Observe que para se mover no eixo y, as linhas se alteram
     {
         /* O rato tentou ir para o Leste */
@@ -336,28 +322,49 @@ int olhar_bussula(Casa c, int x_antigo, int y_antigo)
     return bussula;
 }
 
-void atualizar_distancia(Casa path[MAX_ROW * MAX_COL], int maze[MAX_ROW][MAX_COL], int x, int y, int m, int size)
+void atualizar_distancias(Casa path[MAX], int maze[MAX_ROW][MAX_COL], int tamanho)
 {
-    if(maze[x][y] == 0 && m != 2)
+    for(int i = 0; i < tamanho; i++)
     {
-        for(int i = 0; i < size; i++)
-        {
-            path[i].d = path[i].d+1;
-        }
-    }
-    if(maze[x][y] == 1 && path[size].d == 1)
-    {
-        for(int i = 0; i < size-1; i++)
-        {
-            path[i].d = path[i].d+1;
-        }
+        int x_p = path[i].x;
+        int y_p = path[i].y;
+
+        maze[x_p][y_p] = ++path[i].d;
     }
 }
 
-
-void flood_fill(Casa path[MAX_ROW * MAX_COL], int maze[MAX_ROW][MAX_COL], int visited[MAX_ROW][MAX_COL], int x, int y, int d)
+void log_atual(Casa c)
 {
-    Casa q[MAX_ROW * MAX_COL]; // Fila de vizinhos da posicao atual
+    printf("\t atual: (%dx%d):%d \n", c.x, c.y, c.d);
+}
+
+void log_fila(Casa q[MAX], int visited[MAX_ROW][MAX_COL], int front, int rear)
+{
+    for (int i = front; i < rear; i++)
+    {
+        printf("\t q(i = %d): (%dx%d):%d ", i, q[i].x, q[i].y, q[i].d);
+        printf("v = %d \n", visited[q[i].x][q[i].y]);
+    }
+}
+
+void log_indice_fila(int front, int rear)
+{
+    printf("\t front:%d rear:%d \n", front, rear);
+}
+
+void log_bussula(int x_antigo, int y_antigo, int direcao_antiga, int x, int y, int bussula)
+{
+    printf("\t bussula antiga de (%dx%d) = %d | bussula de (%dx%d) = %d \n", x_antigo, y_antigo, direcao_antiga, x, y, bussula);
+}
+
+void log_movimento(int x_antigo, int y_antigo, int bussula, Casa c)
+{
+    printf("\t (%dx%d) olhando para: %d tenta se mover para: (%dx%d):%d\n", x_antigo, y_antigo, bussula, c.x, c.y, c.d);
+}
+
+Casa flood_fill(Casa path[MAX], int maze[MAX_ROW][MAX_COL], int visited[MAX_ROW][MAX_COL], int x, int y, int d, char comando, int fase)
+{
+    Casa q[MAX]; // Fila de vizinhos da posicao atual
 
     int front = 0; // Frente da fila
     int rear = 0; // Final da fila
@@ -366,100 +373,104 @@ void flood_fill(Casa path[MAX_ROW * MAX_COL], int maze[MAX_ROW][MAX_COL], int vi
     q[rear++] = c; // Coloca a casa na frente da fila
 
     int bussula = 0; // (0 = norte, 1 = leste, 2 = oeste, 3 = sul)
+    int direcao_antiga = bussula; // Direcao antiga do rato
+
     /* Coordenadas antigas do rato */
     int x_antigo = x;
     int y_antigo = y;
 
-    int m = 1; // No inicio, como o rato esta no labirinto, considera que ele se moveu
+    int size_vizinhos = 0; // Contador de quantos vizinhos de uma casa foram visitados;
+    int size_path = 0; // Contador do tamanho do caminho
 
-    int path_size = 0; // Contador do tamanho do caminho
+    int m = 1; // No inicio, como o rato esta no labirinto, considera que ele se moveu para a casa inicial
+
+    int is_inicio = 1;
 
     /* Enquanto a fila nao estiver vazia */
     while (front != rear)
     {
-        /* ------------------------ teste ------------------------ */
-        // Neste teste eu imprimo o tamanho da fila
-        printf("\t front:%d rear:%d \n", front, rear);
-        /* -------------------------------------------------------- */
+        log_indice_fila(front, rear); // Log
 
         /* Se o rato se moveu, pega a casa vizinha na frente da fila */
         if(m == 1)
         {
             c = q[front];
         }
-        /* Se nao conseguiu se mover, pega a proxima casa da fila nao-visitada */
-        else
+        /* Se nao conseguiu se mover, pega a proxima casa vizinha na fila */
+        else if(size_vizinhos > 0)
         {
             front = (front + 1) % MAX;
             c = q[front];
+            size_vizinhos--;
+        }
+        /* Se ciclo [...] */
+        else if(!is_inicio && size_vizinhos == 0)
+        {
+            // Ciclo
         }
 
-        /* ------------------------ teste ------------------------ */
-        printf("\t atual: (%dx%d):%d \n", c.x, c.y, c.d);
-        /* -------------------------------------------------------- */
-
-        /* Atualiza as coordenadas com a posicao da casa */
+        /* Atualiza as coordenadas da casa atual */
         x = c.x;
         y = c.y;
 
-        int direcao_antiga = bussula; // Direcao antiga do rato
+        log_atual(c); // Log
 
-        /* Pega a direcao atual do rato */
-        bussula = olhar_bussula(c, x_antigo, y_antigo); // No inicio sera 0
-
-        /* ------------------------ teste ------------------------ */
-        // Neste teste eu imprimo a direcao atual do rato e a direcao antiga
-        printf("\t bussula(%dx%d):%d antiga(%dx%d):%d \n", c.x, c.y, bussula, x_antigo, y_antigo, direcao_antiga);
-        /* -------------------------------------------------------- */
-
-        /* Se o robo esta olhando para outra direcao ou bateu em uma parede */
-        if(direcao_antiga != bussula || m == 0)
+        /* Se nao for inicio, a casa atual na fila sera para onde o rato esta olhando e tentara se mover */
+        if(!is_inicio)
         {
-            virar_rato(direcao_antiga, bussula);
+            direcao_antiga = bussula; // Direcao antiga do rato
+            /* Pega a direcao atual do rato */
+            bussula = olhar_bussula(c, x_antigo, y_antigo);
+            log_bussula(x_antigo, y_antigo, direcao_antiga, x, y, bussula); // Log
 
-            /* ------------------------ teste ------------------------*/
-            // Neste teste eu imprimo onde o rato esta olhando
-            printf("\t (%dx%d): olhando para: %d tenta se mover para: (%dx%d):%d\n", x_antigo, y_antigo, bussula, q[front].x, q[front].y, q[front].d);
-            /* -------------------------------------------------------- */
+            /* Se o rato esta olhando para outra direcao ou se bateu em uma parede */
+            if(direcao_antiga != bussula || m == 0)
+                virar_rato(direcao_antiga, bussula);
 
+            log_movimento(x_antigo, y_antigo, bussula, c); // Log
             m = verificar_resposta(andar(), 'w');
         }
 
-        /* Se a casa estiver no labirinto e nao tiver sido visitada e for possivel se mover ate ela */
-        if (is_maze(x, y) && visited[x][y] == -1 && m == 1)
+        /* Se for possivel se mover ate a casa e ela estiver no labirinto e nao tiver sido visitada */
+        if ((m == 1 || m == 2) && (is_maze(x, y) && !visited[x][y]) )
         {
+            visited[x][y] = 1; // Marca a casa como visitada
+
+            path[size_path++] = c; // Armazena a casa no caminho
+
+            /* Se encontrou o objetivo, terminar */
+            if(m == 2 && comando == 'w')
+                return c;
+
+            size_vizinhos = 0;
+
+            front = rear; // Pega o proximo vizinho da casa atual
+
+            /* Guarda as coordenadas antigas */
             x_antigo = x;
             y_antigo = y;
 
-            visited[x][y] = 1; // Marca a casa como visitada
-
-            path[path_size] = c; // Armazena a casa no caminho
-
-            /* Atualiza as distancias das casas do caminho */
-            atualizar_distancia(path, maze, x, y, m, path_size);
-            path_size++;
-
             /* Pega os vizinhos da casa */
-            Casa v_leste = {c.x+1, c.y, maze[x+1][y]};
-            Casa v_oeste = {c.x-1, c.y, maze[x-1][y]};
-            Casa v_norte = {c.x, c.y+1, maze[x][y+1]};
-            Casa v_sul = {c.x, c.y-1, maze[x][y-1]};
+            Casa v_leste = {x+1, y, maze[x+1][y]};
+            Casa v_oeste = {x-1, y, maze[x-1][y]};
+            Casa v_norte = {x, y+1, maze[x][y+1]};
+            Casa v_sul = {x, y-1, maze[x][y-1]};
 
             int i = 0, j = 0;
             Casa v_em_x[2]; // Leste e Oeste
             Casa v_em_y[2]; // Norte e Sul
 
             /* Se o vizinho esta no labirinto e nao foi visitado, armazena nos vetores auxiliares */
-            if(v_leste.d != -1 && is_maze(v_leste.x, v_leste.y) && visited[v_leste.x][v_leste.y] == -1)
+            if(v_leste.d != -1 && is_maze(v_leste.x, v_leste.y) && !visited[v_leste.x][v_leste.y])
                 v_em_x[i++] = v_leste;
 
-            if(v_oeste.d != -1 && is_maze(v_oeste.x, v_oeste.y) && visited[v_oeste.x][v_oeste.y] == -1)
+            if(v_oeste.d != -1 && is_maze(v_oeste.x, v_oeste.y) && !visited[v_oeste.x][v_oeste.y])
                 v_em_x[i++] = v_oeste;
 
-            if(v_norte.d != -1 && is_maze(v_norte.x, v_norte.y) && visited[v_norte.x][v_norte.y] == -1)
+            if(v_norte.d != -1 && is_maze(v_norte.x, v_norte.y) && !visited[v_norte.x][v_norte.y])
                 v_em_y[j++] = v_norte;
 
-            if(v_sul.d != -1 && is_maze(v_sul.x, v_sul.y) && visited[v_sul.x][v_sul.y] == -1)
+            if(v_sul.d != -1 && is_maze(v_sul.x, v_sul.y) && !visited[v_sul.x][v_sul.y])
                 v_em_y[j++] = v_sul;
 
             /* Classifica as casas vizinhas pela distancia mais curta */
@@ -467,94 +478,82 @@ void flood_fill(Casa path[MAX_ROW * MAX_COL], int maze[MAX_ROW][MAX_COL], int vi
             sort_vizinhos(v_em_y, j);
 
             /* Os vizinhos resultantes */
-            int tam_v = i+j;
-            Casa v[tam_v];
+            size_vizinhos = i + j;
+            Casa v[size_vizinhos];
             juntar_vizinhos(v_em_x, v_em_y, i, j, v);
 
-            front = rear;
-
-            /* Armazena os vizinhos da casa na fila */
-            for (int k = 0; k < tam_v; k++)
+            /* Se houver vizinhos, armazena os vizinhos da casa na fila */
+            for (int k = 0; k < size_vizinhos; k++)
             {
-                /* ------------------------ teste ------------------------ */
-                // Neste teste eu imprimo todos os vizinhos que entraram na fila
-                printf("\t (rear = %d): (%dx%d):%d \n", rear, v[k].x, v[k].y, v[k].d);
-                /* -------------------------------------------------------- */
                 q[rear] = v[k];
-
                 rear = (rear + 1) % MAX;
             }
 
-            /* ------------------------ teste ------------------------ */
-            // Neste teste eu imprimo a fila
-            //for (int i = front; i < rear; i++)
-            {
-                printf("\t q(front = %d): (%dx%d):%d v = %d \n", i, q[i].x, q[i].y, q[i].d, visited[q[i].x][q[i].y]);
-            }
-            /* -------------------------------------------------------- */
+            log_fila(q, visited, front, rear); // Log
 
-            bussula = olhar_bussula(q[front], x_antigo, y_antigo); // Pega a direcao atual do rato
-
-            /* Se o robo esta olhando para outra direcao*/
-            if(direcao_antiga != bussula || m == 0)
-                virar_rato(direcao_antiga, bussula); // Vira o rato para outra direcao
-
-            /* ------------------------ teste ------------------------*/
-            // Neste teste eu imprimo onde o rato esta olhando
-            printf("\t (%dx%d):%d olhando para: %d tenta se mover para: (%dx%d):%d\n", c.x, c.y, c.d, bussula, q[front].x, q[front].y, q[front].d);
-            /* -------------------------------------------------------- */
-
-            m = verificar_resposta(andar(), 'w'); // Move o rato
+            /* Se for inicio, zerar */
+            if(is_inicio)
+                is_inicio = 0;
         }
+
+        if(fase == 2 && q[front].x == MAX_ROW/2 && q[front].y == MAX_COL/2)
+            return q[front];
     }
+    return c;
 }
 
-void inunda_maze_direita_baixo(int maze[MAX_ROW][MAX_COL], int x, int y, int d)
+void veloz_e_furioso(Casa path[MAX_ROW * MAX_COL])
 {
-    /* Se fora dos limites do labirinto ou se ja foi visitado */
-    if (!is_maze(x, y) || maze[x][y] != -1 || d < 0)
-        return;
+    int bussula = 0;
+    int direcao_antiga = bussula;
+    int x_antigo =0;
+    int y_antigo=0;
+    Casa c;
+    int m = 1;
+    int i = 0;
+    do
+    {
+        x_antigo = c.x;
+        y_antigo = c.y;
+        c = path[i++];
+        direcao_antiga = bussula;
+        bussula = olhar_bussula(c, x_antigo, y_antigo); // Pega a direcao atual do rato
+        if(direcao_antiga != bussula || m == 0)
+            virar_rato(direcao_antiga, bussula); // Vira o rato para outra direcao
 
-    maze[x][y] = d;
-
-    inunda_maze_direita_baixo(maze, x, y+1, d - 1); // Direta
-    inunda_maze_direita_baixo(maze, x+1, y, d - 1); // Baixo
+        m = verificar_resposta(andar(), 'w'); // Move o rato
+    }
+    while(c.d > 0);
 }
 
-void inunda_maze_direita_cima(int maze[MAX_ROW][MAX_COL], int x, int y, int d)
+void inunda_maze_direita(int maze[MAX_ROW][MAX_COL], int x, int y, int d)
 {
-    /* Se fora dos limites do labirinto ou se ja foi visitado */
-    if (!is_maze(x, y) || d < 0)
+    if (!is_maze(x, y) || maze[x][y] != -1)
         return;
 
-    maze[x][y] = d;
+    if(d < 0)
+        maze[x][y] = d*-1;
+    else
+        maze[x][y] = d;
 
-    inunda_maze_direita_cima(maze, x, y+1, d - 1); // Direta
-    inunda_maze_direita_cima(maze, x-1, y, d - 1); // Cima
+    inunda_maze_direita(maze, x, y+1, d - 1); // Direta
+    inunda_maze_direita(maze, x+1, y, d - 1); // Baixo
+    inunda_maze_direita(maze, x-1, y, d - 1); // Cima
 }
 
-void inunda_maze_esquerda_baixo(int maze[MAX_ROW][MAX_COL], int x, int y, int d)
+void inunda_maze_esquerda(int maze[MAX_ROW][MAX_COL], int x, int y, int d)
 {
-    /* Se fora dos limites do labirinto ou se ja foi visitado */
-    if (!is_maze(x, y) || d < 0)
+    if (!is_maze(x, y) || maze[x][y] != -1 )
         return;
 
-    maze[x][y] = d;
+    if(d < 0)
+        maze[x][y] = d*-1;
+    else
+        maze[x][y] = d;
 
-    inunda_maze_esquerda_baixo(maze, x, y-1, d - 1); // Esquerda
-    inunda_maze_esquerda_baixo(maze, x+1, y, d - 1); // Baixo
-}
-
-void inunda_maze_esquerda_cima(int maze[MAX_ROW][MAX_COL], int x, int y, int d)
-{
-    /* Se fora dos limites do labirinto ou se ja foi visitado */
-    if (!is_maze(x, y) || d < 0)
-        return;
-
-    maze[x][y] = d;
-
-    inunda_maze_esquerda_cima(maze, x, y-1, d - 1); // Esquerda
-    inunda_maze_esquerda_cima(maze, x-1, y, d - 1); // Cima
+    inunda_maze_esquerda(maze, x, y - 1, d - 1); // Esquerda
+    inunda_maze_esquerda(maze, x + 1, y, d - 1); // Baixo
+    inunda_maze_esquerda(maze, x - 1, y, d - 1); // Cima
 }
 
 void print_maze(int maze[MAX_ROW][MAX_COL])
@@ -611,7 +610,7 @@ int main()
         for (int j = -1; j < MAX_COL; j++)
         {
             maze[i][j] = -1;
-            visited[i][j] = -1;
+            visited[i][j] = 0;
         }
     }
 
@@ -626,18 +625,21 @@ int main()
     int d = D_TESTE;
 
     /* Inicializa o labirinto com distancias ate o objetivo */
-    inunda_maze_direita_baixo(maze, MAX_ROW/2, MAX_COL/2, d);
-    inunda_maze_direita_cima(maze, MAX_ROW/2, MAX_COL/2, d);
-
-    inunda_maze_esquerda_baixo(maze, MAX_ROW/2, MAX_COL/2, d);
-    inunda_maze_esquerda_cima(maze, MAX_ROW/2, MAX_COL/2, d);
+    inunda_maze_direita(maze, MAX_ROW/2, MAX_COL/2, d);
+    inunda_maze_esquerda(maze, MAX_ROW/2, MAX_COL/2 -1, d-1);
 
     /* Flood fill da origem ate o objetivo */
-    //flood_fill(path, maze, visited, MAX_ROW/2, MAX_COL/2, d);
+
+    Casa a = flood_fill(path, maze, visited, MAX_ROW/2, MAX_COL/2, d, 'w', 1);
+    printf("%dx%d",a.x, a.y);
+
+    //Casa b = flood_fill(path, maze, visited, a.x, a.y, 0, 'w', 2);
+
+    //veloz_e_furioso(path);
 
     /* ------------------------ teste ------------------------ */
     print_maze(maze);
-    //print_map(visited);
+    print_map(visited);
     //print_path(path);
     /* -------------------------------------------------------- */
 
