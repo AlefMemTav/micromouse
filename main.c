@@ -2,14 +2,14 @@
 #include <limits.h>
 #include <math.h>
 
-#define MAX_ROW 5
+#define MAX_ROW 5 // Alterar conforme o tamanho maximo do labirinto
 #define MAX_COL 5
 #define MAX (MAX_ROW * MAX_COL)
 
 #define X_ORIGEM (MAX_ROW/2)
 #define Y_ORIGEM (MAX_COL/2)
 
-#define D_TESTE 2
+#define D_TESTE 2 // Distancia de teste
 
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 
@@ -437,12 +437,10 @@ void juntar_vizinhos(Casa* arr1, Casa* arr2, int size1, int size2, Casa* arr3, i
             }
             else if(menor_direcao(b_1, bussula) <= 1)
             {
-                //printf("b_1  = %d (%dx%d) dif = %d\n", b_1, arr1[i].x, arr1[i].y, abs(b_1 - bussula));
                 arr3[k++] = arr1[i++];
             }
             else if(menor_direcao(b_2, bussula) <= 1)
             {
-                //printf("b_1 = %d (%dx%d) dif = %d\n", b_2, arr2[j].x, arr2[j].y, abs(b_2 - bussula));
                 arr3[k++] = arr2[j++];
             }
         }
@@ -513,6 +511,7 @@ Casa flood_fill(int x, int y, int d, int *size_path, char comando, int fase)
         /* Se ciclo, pegar a ultima casa no caminho */
         else if(m == 0 && is_ciclo && size_vizinhos == 0)
         {
+            maze[x_antigo][y_antigo] = -1; // Marca como caminho morto
             rear = (rear + 1) % MAX;
             c = path[(*size_path) - 1];
             printf("Voltar para: %dx%d\n", c.x, c.y);
@@ -553,7 +552,7 @@ Casa flood_fill(int x, int y, int d, int *size_path, char comando, int fase)
         }
 
         /* Se for possivel se mover ate a casa e ela estiver no labirinto e nao tiver sido visitada ou for a fase 2 */
-        if ((m == 1 || m == 2) && (is_maze(x, y) && (!visited[x][y] || is_ciclo || fase == 2)))
+        if ((m == 1 || m == 2) && is_maze(x, y) && (!visited[x][y] || is_ciclo || fase == 2))
         {
             /* Se nao for ciclo e a casa nao tiver sido visitada, armazena a casa no caminho */
             if(!is_ciclo && !visited[x][y])
@@ -719,8 +718,6 @@ int main()
     //int d = sensor_distancia();
     int d = D_TESTE;
 
-    //printf("inicial: %dx%d\n", X_ORIGEM, Y_ORIGEM);
-
     inicializa_visited();
     inicializa_maze(-1);
     inicializa_path();
@@ -737,8 +734,6 @@ int main()
     /* Coordenadas do objetivo */
     int x_a = a.x;
     int y_a = a.y;
-
-    //printf("objetivo: %dx%d\n", x_a, y_a);
 
     /* Inicializa novamente o labirinto */
     inicializa_maze(INT_MAX);
