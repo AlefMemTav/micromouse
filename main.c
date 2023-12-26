@@ -198,14 +198,14 @@ void log_indice_fila(int front, int rear)
     printf("\t front:%d rear:%d \n", front, rear);
 }
 
-void log_bussula(int x_antigo, int y_antigo, int direcao_antiga, int x, int y, int bussula)
+void log_bussola(int x_antigo, int y_antigo, int direcao_antiga, int x, int y, int bussola)
 {
-    printf("\t bussula antiga de (%dx%d) = %d | bussula de (%dx%d) = %d \n", x_antigo, y_antigo, direcao_antiga, x, y, bussula);
+    printf("\t bussola antiga de (%dx%d) = %d | bussola de (%dx%d) = %d \n", x_antigo, y_antigo, direcao_antiga, x, y, bussola);
 }
 
-void log_movimento(int x_antigo, int y_antigo, int bussula, Casa c)
+void log_movimento(int x_antigo, int y_antigo, int bussola, Casa c)
 {
-    printf("\t (%dx%d) olhando para %d tenta se mover para: (%dx%d):%d\n", x_antigo, y_antigo, bussula, c.x, c.y, c.d);
+    printf("\t (%dx%d) olhando para %d tenta se mover para: (%dx%d):%d\n", x_antigo, y_antigo, bussola, c.x, c.y, c.d);
 }
 
 void log_map()
@@ -231,27 +231,27 @@ void log_path(int size_path)
     printf("\n");
 }
 
-void virar_rato(int direcao_antiga, int bussula)
+void virar_rato(int direcao_antiga, int bussola)
 {
     switch(direcao_antiga)
     {
     /* Se o rato estava no Norte */
     case 0:
         /* O rato foi para o Leste */
-        if(bussula == 1)
+        if(bussola == 1)
         {
             virar_direita();
             log_resposta(5, 'r');
         }
         /* O rato foi para o Sul */
-        else if(bussula == 2)
+        else if(bussola == 2)
         {
             virar_direita();
             virar_direita();
             log_resposta(5, 'R');
         }
         /* O rato foi para o Oeste */
-        else if(bussula == 3)
+        else if(bussola == 3)
         {
             virar_esquerda();
             log_resposta(5, 'l');
@@ -260,19 +260,19 @@ void virar_rato(int direcao_antiga, int bussula)
     /* Se o rato estava no Leste */
     case 1:
         /* O rato foi para o Norte */
-        if (bussula == 0)
+        if (bussola == 0)
         {
             virar_esquerda();
             log_resposta(5, 'l');
         }
         /* O rato foi para o Sul */
-        else if (bussula == 2)
+        else if (bussola == 2)
         {
             virar_direita();
             log_resposta(5, 'r');
         }
         /* O rato foi para o Oeste */
-        else if (bussula == 3)
+        else if (bussola == 3)
         {
             virar_direita();
             virar_direita();
@@ -282,20 +282,20 @@ void virar_rato(int direcao_antiga, int bussula)
     /* Se o rato estava no Sul */
     case 2:
         /* O rato foi para o Norte */
-        if(bussula == 0)
+        if(bussola == 0)
         {
             virar_direita();
             virar_direita();
             log_resposta(5, 'R');
         }
         /* O rato foi para o Leste */
-        else if(bussula == 1)
+        else if(bussola == 1)
         {
             virar_esquerda();
             log_resposta(5, 'l');
         }
         /* O rato foi para o Oeste */
-        else if(bussula == 3)
+        else if(bussola == 3)
         {
             virar_direita();
             log_resposta(5, 'r');
@@ -304,20 +304,20 @@ void virar_rato(int direcao_antiga, int bussula)
     /* Se o rato estava no Oeste */
     case 3:
         /* O rato foi para o Norte*/
-        if (bussula == 0)
+        if (bussola == 0)
         {
             virar_direita();
             log_resposta(5, 'r');
         }
         /* O rato foi para o Leste */
-        else if (bussula == 1)
+        else if (bussola == 1)
         {
             virar_direita();
             virar_direita();
             log_resposta(5, 'R');
         }
         /* O rato foi para o Sul */
-        else if (bussula == 2)
+        else if (bussola == 2)
         {
             virar_esquerda();
             log_resposta(5, 'l');
@@ -347,61 +347,61 @@ int mover_rato(char comando)
     return m;
 }
 
-int olhar_bussula(Casa c, int x_antigo, int y_antigo)
+int olhar_bussola(Casa c, int x_antigo, int y_antigo)
 {
     /* Se for o inicio, o rato esta olhando para o Leste */
-    int bussula = 1; // Leste
+    int bussola = 1; // Leste
 
     /* Se o rato esta se movendo no Leste ou Oeste */
     if(c.x == x_antigo && c.y != y_antigo)
     {
         /* O rato tentou ir para o Leste */
         if(c.y > y_antigo)
-            bussula = 1;
+            bussola = 1;
         /* O rato tentou ir para o Oeste */
         else
-            bussula = 3;
+            bussola = 3;
     }
     /* Se o rato esta se movendo no Norte ou Sul */
     else if(c.x != x_antigo && c.y == y_antigo)
     {
         /* O rato tentou ir para o Sul */
         if(c.x > x_antigo)
-            bussula = 2;
+            bussola = 2;
         /* O rato tentou ir para o Norte */
         else
-            bussula = 0;
+            bussola = 0;
     }
-    return bussula;
+    return bussola;
 }
 
-int menor_direcao(int bussula_1, int bussula)
+int menor_direcao(int bussola_1, int bussola)
 {
-    if(bussula == 0 && bussula_1 == 3)
+    if(bussola == 0 && bussola_1 == 3)
         return 1;
-    else if(bussula == 3 && bussula_1 == 0)
+    else if(bussola == 3 && bussola_1 == 0)
         return 1;
     else
-        return abs(bussula_1 - bussula);
+        return abs(bussola_1 - bussola);
 }
 
 /* Verificar */
-void sort_distancia_direcao(Casa* v, int tamanho, int x, int y, int bussula)
+void sort_distancia_direcao(Casa* v, int tamanho, int x, int y, int bussola)
 {
     for (int i = 0; i < tamanho - 1; i++)
     {
         for (int j = 0; j < tamanho - i - 1; j++)
         {
-            /* Se as distancias forem iguais, priorizar a mesma direcao da bussula ou a menor direcao */
+            /* Se as distancias forem iguais, priorizar a mesma direcao da bussola ou a menor direcao */
             if(v[j].d == v[j + 1].d)
             {
-                int b_1 = olhar_bussula(v[j], x, y);
-                int b_2 = olhar_bussula(v[j + 1], x, y);
-                if(b_1 != bussula && b_2 == bussula)
+                int b_1 = olhar_bussola(v[j], x, y);
+                int b_2 = olhar_bussola(v[j + 1], x, y);
+                if(b_1 != bussola && b_2 == bussola)
                 {
                     SWAP(v[j], v[j + 1]);
                 }
-                else if(menor_direcao(b_1, bussula) > menor_direcao(b_2, bussula))
+                else if(menor_direcao(b_1, bussola) > menor_direcao(b_2, bussola))
                 {
                     SWAP(v[j], v[j + 1]);
                 }
@@ -416,7 +416,7 @@ void sort_distancia_direcao(Casa* v, int tamanho, int x, int y, int bussula)
 }
 
 /* Verificar */
-void juntar_vizinhos(Casa* arr1, Casa* arr2, int size1, int size2, Casa* arr3, int x, int y, int bussula)
+void juntar_vizinhos(Casa* arr1, Casa* arr2, int size1, int size2, Casa* arr3, int x, int y, int bussola)
 {
     int i = 0, j = 0, k = 0;
 
@@ -425,21 +425,21 @@ void juntar_vizinhos(Casa* arr1, Casa* arr2, int size1, int size2, Casa* arr3, i
         /* Se as distancias forem iguais, priorizar a mesma direcao ou a menor direcao possivel */
         if(arr1[i].d == arr2[j].d)
         {
-            int b_1 = olhar_bussula(arr1[i], x, y);
-            int b_2 = olhar_bussula(arr2[j], x, y);
-            if(b_1 == bussula && b_2 != bussula)
+            int b_1 = olhar_bussola(arr1[i], x, y);
+            int b_2 = olhar_bussola(arr2[j], x, y);
+            if(b_1 == bussola && b_2 != bussola)
             {
                 arr3[k++] = arr1[i++];
             }
-            else if(b_2 == bussula && b_1 != bussula)
+            else if(b_2 == bussola && b_1 != bussola)
             {
                 arr3[k++] = arr2[j++];
             }
-            else if(menor_direcao(b_1, bussula) <= 1)
+            else if(menor_direcao(b_1, bussola) <= 1)
             {
                 arr3[k++] = arr1[i++];
             }
-            else if(menor_direcao(b_2, bussula) <= 1)
+            else if(menor_direcao(b_2, bussola) <= 1)
             {
                 arr3[k++] = arr2[j++];
             }
@@ -479,8 +479,8 @@ Casa flood_fill(int x, int y, int d, int *size_path, char comando, int fase)
     Casa c = {x, y, d}; // A casa inicial de onde o rato parte
     q[rear++] = c; // Coloca a casa na frente da fila
 
-    int bussula = 1; // (0 = norte, 1 = leste, 2 = sul, 3 = oeste)
-    int direcao_antiga = bussula; // Direcao antiga do rato
+    int bussola = 1; // (0 = norte, 1 = leste, 2 = sul, 3 = oeste)
+    int direcao_antiga = bussola; // Direcao antiga do rato
 
     /* Coordenadas antigas do rato */
     int x_antigo = x;
@@ -526,16 +526,16 @@ Casa flood_fill(int x, int y, int d, int *size_path, char comando, int fase)
         /* Se nao for inicio, a casa atual na fila sera para onde o rato esta olhando e tentara se mover */
         if(!is_inicio)
         {
-            direcao_antiga = bussula; // Direcao antiga do rato
-            bussula = olhar_bussula(c, x_antigo, y_antigo); // Pega a direcao atual do rato
+            direcao_antiga = bussola; // Direcao antiga do rato
+            bussola = olhar_bussola(c, x_antigo, y_antigo); // Pega a direcao atual do rato
 
-            log_bussula(x_antigo, y_antigo, direcao_antiga, x, y, bussula); // Log
+            log_bussola(x_antigo, y_antigo, direcao_antiga, x, y, bussola); // Log
 
             /* Se o rato esta olhando para outra direcao ou se bateu em uma parede */
-            if(direcao_antiga != bussula || m == 0)
-                virar_rato(direcao_antiga, bussula);
+            if(direcao_antiga != bussola || m == 0)
+                virar_rato(direcao_antiga, bussola);
 
-            log_movimento(x_antigo, y_antigo, bussula, c); // Log
+            log_movimento(x_antigo, y_antigo, bussola, c); // Log
 
             m = mover_rato(comando);
 
@@ -599,15 +599,15 @@ Casa flood_fill(int x, int y, int d, int *size_path, char comando, int fase)
             if(v_oeste.d != -1 && is_maze(v_oeste.x, v_oeste.y) && (!visited[v_oeste.x][v_oeste.y] || fase == 2))
                 v_em_x[i++] = v_oeste;
 
-            /* Classifica as casas vizinhas pela distancia mais curta e pela mesma direcao da bussula */
-            sort_distancia_direcao(v_em_x, i, x, y, bussula);
-            sort_distancia_direcao(v_em_y, j, x, y, bussula);
+            /* Classifica as casas vizinhas pela distancia mais curta e pela mesma direcao da bussola */
+            sort_distancia_direcao(v_em_x, i, x, y, bussola);
+            sort_distancia_direcao(v_em_y, j, x, y, bussola);
 
             /* Os vizinhos resultantes */
             size_vizinhos = i + j;
             Casa v[size_vizinhos];
 
-            juntar_vizinhos(v_em_x, v_em_y, i, j, v, x, y, bussula);
+            juntar_vizinhos(v_em_x, v_em_y, i, j, v, x, y, bussola);
 
             /* Se houver vizinhos, armazena os vizinhos da casa na fila */
             for (int k = 0; k < size_vizinhos; k++)
