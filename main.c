@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <limits.h>
 #include <math.h>
+/**
+* Written in Brazilian Portuguese without accents.
+* Original repository in https://github.com/AlefMemTav/micromouse
+* The author is Pedro Lucas Garcia (garcia.lucas@aluno.unb.br)
+*/
 
 #define MAX_ROW 5 // Alterar conforme o tamanho maximo do labirinto
 #define MAX_COL 5
@@ -44,6 +49,7 @@ int is_maze(int i, int j)
 * Ler a entrada padrao para informar a resposta.
 * Usado junto com os comandos do rato.
 * @return int in a resposta do comando
+* @author
 */
 int ler_stdin()
 {
@@ -206,6 +212,19 @@ void log_bussola(int x_antigo, int y_antigo, int direcao_antiga, int x, int y, i
 void log_movimento(int x_antigo, int y_antigo, int bussola, Casa c)
 {
     printf("\t (%dx%d) olhando para %d tenta se mover para: (%dx%d):%d\n", x_antigo, y_antigo, bussola, c.x, c.y, c.d);
+}
+
+void log_maze()
+{
+    printf("\nMaze: \n");
+    for (int i = 0; i < MAX_ROW; i++)
+    {
+        for (int j = 0; j < MAX_COL; j++)
+        {
+            printf("%3d", maze[i][j]);
+        }
+        printf("\n");
+    }
 }
 
 void log_map()
@@ -385,8 +404,7 @@ int menor_direcao(int bussola_1, int bussola)
         return abs(bussola_1 - bussola);
 }
 
-/* Verificar */
-void sort_distancia_direcao(Casa* v, int tamanho, int x, int y, int bussola)
+void sort_vizinhos_distancia_direcao(Casa* v, int tamanho, int x, int y, int bussola)
 {
     for (int i = 0; i < tamanho - 1; i++)
     {
@@ -413,49 +431,6 @@ void sort_distancia_direcao(Casa* v, int tamanho, int x, int y, int bussola)
             }
         }
     }
-}
-
-/* Verificar */
-void juntar_vizinhos(Casa* arr1, Casa* arr2, int size1, int size2, Casa* arr3, int x, int y, int bussola)
-{
-    int i = 0, j = 0, k = 0;
-
-    while (i < size1 && j < size2)
-    {
-        /* Se as distancias forem iguais, priorizar a mesma direcao ou a menor direcao possivel */
-        if(arr1[i].d == arr2[j].d)
-        {
-            int b_1 = olhar_bussola(arr1[i], x, y);
-            int b_2 = olhar_bussola(arr2[j], x, y);
-            if(b_1 == bussola && b_2 != bussola)
-            {
-                arr3[k++] = arr1[i++];
-            }
-            else if(b_2 == bussola && b_1 != bussola)
-            {
-                arr3[k++] = arr2[j++];
-            }
-            else if(menor_direcao(b_1, bussola) <= 1)
-            {
-                arr3[k++] = arr1[i++];
-            }
-            else if(menor_direcao(b_2, bussola) <= 1)
-            {
-                arr3[k++] = arr2[j++];
-            }
-        }
-        /* Se as distancias forem diferentes, priorizar o de menor distancia */
-        else if(arr1[i].d < arr2[j].d)
-            arr3[k++] = arr1[i++];
-        else
-            arr3[k++] = arr2[j++];
-    }
-
-    while (i < size1)
-        arr3[k++] = arr1[i++];
-
-    while (j < size2)
-        arr3[k++] = arr2[j++];
 }
 
 void atualizar_distancias(int tamanho)
@@ -582,37 +557,28 @@ Casa flood_fill(int x, int y, int d, int *size_path, char comando, int fase)
             Casa v_leste = {x, y+1, maze[x][y+1]};
             Casa v_oeste = {x, y-1, maze[x][y-1]};
 
-            int i = 0, j = 0;
-            Casa v_em_x[2]; // Leste e Oeste
-            Casa v_em_y[2]; // Norte e Sul
+            Casa vizinhos[4];
 
             /* Se o vizinho esta no labirinto e nao foi visitado ou fase 2, armazena nos vetores auxiliares */
             if(v_norte.d != -1 && is_maze(v_norte.x, v_norte.y) && (!visited[v_norte.x][v_norte.y] || fase == 2))
-                v_em_y[j++] = v_norte;
-
-            if(v_sul.d != -1 && is_maze(v_sul.x, v_sul.y) && (!visited[v_sul.x][v_sul.y] || fase == 2))
-                v_em_y[j++] = v_sul;
+                vizinhos[size_vizinhos++] = v_norte;
 
             if(v_leste.d != -1 && is_maze(v_leste.x, v_leste.y) && (!visited[v_leste.x][v_leste.y] || fase == 2))
-                v_em_x[i++] = v_leste;
+                vizinhos[size_vizinhos++] = v_leste;
+
+            if(v_sul.d != -1 && is_maze(v_sul.x, v_sul.y) && (!visited[v_sul.x][v_sul.y] || fase == 2))
+                vizinhos[size_vizinhos++] = v_sul;
 
             if(v_oeste.d != -1 && is_maze(v_oeste.x, v_oeste.y) && (!visited[v_oeste.x][v_oeste.y] || fase == 2))
-                v_em_x[i++] = v_oeste;
+                vizinhos[size_vizinhos++] = v_oeste;
 
             /* Classifica as casas vizinhas pela distancia mais curta e pela mesma direcao da bussola */
-            sort_distancia_direcao(v_em_x, i, x, y, bussola);
-            sort_distancia_direcao(v_em_y, j, x, y, bussola);
-
-            /* Os vizinhos resultantes */
-            size_vizinhos = i + j;
-            Casa v[size_vizinhos];
-
-            juntar_vizinhos(v_em_x, v_em_y, i, j, v, x, y, bussola);
+            sort_vizinhos_distancia_direcao(vizinhos, size_vizinhos, x, y, bussola);
 
             /* Se houver vizinhos, armazena os vizinhos da casa na fila */
             for (int k = 0; k < size_vizinhos; k++)
             {
-                q[rear] = v[k];
+                q[rear] = vizinhos[k];
                 rear = (rear + 1) % MAX;
             }
 
@@ -676,19 +642,6 @@ void inunda_maze(int x, int y, int x_a, int y_b, int d, int d_m)
         inunda_maze(x + 1, y, x_a, y_b, d + 1, d_m);
         inunda_maze(x, y - 1, x_a, y_b, d + 1, d_m);
         inunda_maze(x, y + 1, x_a, y_b, d + 1, d_m);
-    }
-}
-
-void log_maze()
-{
-    printf("\nMaze: \n");
-    for (int i = 0; i < MAX_ROW; i++)
-    {
-        for (int j = 0; j < MAX_COL; j++)
-        {
-            printf("%3d", maze[i][j]);
-        }
-        printf("\n");
     }
 }
 
